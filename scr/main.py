@@ -15,6 +15,7 @@ class OpenSpace:
 
 
 def move_object_hero(speed):
+    
     keys_button = pg.key.get_pressed()
 
     if keys_button[pg.K_LEFT]:
@@ -27,10 +28,11 @@ def move_object_hero(speed):
         hero.cord_y += speed
 
 
-pg.display.set_caption("Adventure")
-
 place = OpenSpace()
 hero = MainHero()
+
+pg.display.set_caption("Adventure")
+pg.display.set_icon(place.screen)
 
 while place.work:
     place.clock.tick(place.FPS)
