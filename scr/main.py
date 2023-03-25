@@ -1,6 +1,7 @@
 import pygame as pg
 
 from Hero import MainHero
+from Scenes import MainGame, OpenGame
 
 pg.init()
 
@@ -8,24 +9,12 @@ pg.init()
 class OpenSpace:
     def __init__(self):
         self.background_colour = (0, 0, 0)
-        self.screen = pg.display.set_mode((500, 500))
+        self.width = 500
+        self.height = 500
+        self.screen = pg.display.set_mode((self.width, self.height))
         self.FPS = 30
         self.clock = pg.time.Clock()
         self.work = True
-
-
-def move_object_hero(speed):
-    
-    keys_button = pg.key.get_pressed()
-
-    if keys_button[pg.K_LEFT]:
-        hero.cord_x -= speed
-    if keys_button[pg.K_RIGHT]:
-        hero.cord_x += speed
-    if keys_button[pg.K_UP]:
-        hero.cord_y -= speed
-    if keys_button[pg.K_DOWN]:
-        hero.cord_y += speed
 
 
 place = OpenSpace()
@@ -33,6 +22,8 @@ hero = MainHero()
 
 pg.display.set_caption("Adventure")
 pg.display.set_icon(place.screen)
+
+current_scene = "main"
 
 while place.work:
     place.clock.tick(place.FPS)
@@ -42,12 +33,10 @@ while place.work:
         if event.type == pg.QUIT:
             place.work = False
 
-    move_object_hero(hero.speed)
+    if current_scene == "game":
+        MainGame(hero, place)
 
-    #   <------------- Обработать все изображения -------------->
-    place.screen.fill(place.background_colour)
-    # отрисовка
-    hero.drawing_hero(place.screen)
+    if current_scene == "main":
+        OpenGame(current_scene, place)
 
-    pg.display.update()
 pg.quit()
