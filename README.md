@@ -1,2 +1,2 @@
-# adventure_game
-Python adventure game on pygame. ADVENTURE.
+# Tetris
+Python adventure game on pygame. Tetris.
