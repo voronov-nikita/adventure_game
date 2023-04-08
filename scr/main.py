@@ -1,7 +1,8 @@
 import pygame as pg
+from random import choice
 import sys
 
-from Objects import Square
+from Objects import Square, Direct
 
 pg.init()
 
@@ -20,21 +21,22 @@ class Screen:
         # pg.display.set_icon(self.screen)
 
 
-def check_click_button(hero, size_window):
+def check_click_button(hero_elem, size_window):
     keys_button = pg.key.get_pressed()
 
-    if keys_button[pg.K_LEFT] and hero.move_left(size_window):
-        hero.cord_x -= hero.speed
+    if keys_button[pg.K_LEFT] and hero_elem.move_left(hero_elem.edge_left):
+        hero_elem.cord_x -= hero_elem.speed
 
-    if keys_button[pg.K_RIGHT] and hero.move_right(size_window):
-        hero.cord_x += hero.speed
+    if keys_button[pg.K_RIGHT] and hero_elem.move_right(size_window, hero_elem.edge_right):
+        hero_elem.cord_x += hero_elem.speed
 
     if keys_button[pg.K_DOWN]:
-        hero.cord_y += hero.speed
+        hero_elem.cord_y += hero_elem.speed
 
 
 screen = Screen()
-hero = Square()
+list_objects = [Square(), Direct()]
+hero = choice(list_objects)
 
 while screen.game:
     screen.clock.tick(screen.FPS)
@@ -45,11 +47,11 @@ while screen.game:
             screen.game = False
 
     check_click_button(hero, screen.size_window)
-    hero.moving(screen.size_window)
+    hero.moving(screen.size_window, hero.edge)
 
     # <----------- Обработаем здесь все изображения ----------->
     screen.screen.fill(screen.background_colour)
-    hero.draw_square(screen.screen)
+    hero.draw(screen.screen)
     pg.display.update()
 
 pg.quit()
