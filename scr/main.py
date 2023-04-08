@@ -30,7 +30,7 @@ def check_click_button(hero_elem, size_window):
     if keys_button[pg.K_RIGHT] and hero_elem.move_right(size_window, hero_elem.edge_right):
         hero_elem.cord_x += hero_elem.speed
 
-    if keys_button[pg.K_DOWN]:
+    if keys_button[pg.K_DOWN] and hero_elem.move:
         hero_elem.cord_y += hero_elem.speed
 
 
@@ -53,5 +53,7 @@ while screen.game:
     screen.screen.fill(screen.background_colour)
     hero.draw(screen.screen)
     pg.display.update()
+    if not (hero.move):
+        hero = choice(list_objects)
 
 pg.quit()

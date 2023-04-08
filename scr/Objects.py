@@ -20,6 +20,8 @@ class CheckMove:
     def moving(self, size:tuple, edge:tuple):
         if size[1]-self.speed > edge[1] + self.size + 10 and self.move:
             self.cord_y += self.speed
+        else:
+            self.move = False
 
     def move_left(self, edge:tuple):
         if edge[0] > 10 and self.move:
