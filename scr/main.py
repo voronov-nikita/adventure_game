@@ -1,6 +1,7 @@
 import pygame as pg
 from random import choice
 import sys
+from pyautogui import size
 
 from Objects import Square, Direct
 
@@ -9,7 +10,8 @@ pg.init()
 
 class Screen:
     def __init__(self):
-        self.size_window = (500, 700)
+        x, y = size()
+        self.size_window = (x//3, y//2)
         self.background_colour = (0, 0, 0)
 
         self.screen = pg.display.set_mode(self.size_window)
