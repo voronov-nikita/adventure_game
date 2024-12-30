@@ -5,4 +5,4 @@
 
 
 // URL- адрес сервера для авторизации
-export const URL = ""
+export const URL = "http://localhost:4000"

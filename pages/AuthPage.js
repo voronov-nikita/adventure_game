@@ -1,72 +1,135 @@
-//
 // Страница авторизации пользователей
 //
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, SafeAreaView, StyleSheet, TextInput, TouchableOpacity, Dimensions } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+
+import { AlertBox } from '../components/AlertBox';
 
 // импорт констант из файла с конфигурациями
 import { URL } from '../config';
 
 // Экспортируемый экран авторизации
 export const AuthScreen = ({ navigation }) => {
-
     const { width } = Dimensions.get('window');
-    // сделаем так, что если ширина экрана меньше 400, то ширину блока будем делать 85%, иначе 34%
+    // Ширина основного блока в зависимости от ширины экрана
     const mainBlockWidth = width < 400 ? '85%' : '34%';
 
-    // переменные состояний
-    // message - переменная текста над полями авторизации
+    // Состояния для управления вводом и авторизацией
     const [message, setMessage] = useState('ВВЕДИТЕ ЛОГИН И ПАРОЛЬ');
-    // login - переменная логина пользователя (по умолчанию отсутствует)
     const [login, setLogin] = useState('');
-    // password - переменная пароля пользователя (по умолчанию отсутствует)
     const [password, setPassword] = useState('');
-    // showChangePassword - переменная для отображения кнопки смены пароля
     const [showPassword, setShowPassword] = useState(false);
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-    // функция отправки данных на сервер для АВТОРИЗАЦИИ пользователей
+    // Проверка сохранённой сессии при монтировании
+    useEffect(() => {
+        console.log("Auth open");
+        const token = localStorage.getItem('authToken');
+        const expiresAt = localStorage.getItem('expiresAt');
+    
+        if (token && expiresAt && Date.now() < expiresAt) {
+            setIsAuthenticated(true);
+            navigation.navigate('Home'); // Перенаправляем на главную страницу
+        } else {
+            localStorage.removeItem('authToken');
+            localStorage.removeItem('expiresAt');
+        }
+    }, []);
+    
+
+    // Функция обновления токена (пример)
+    const refreshAuthToken = async () => {
+        try {
+            const response = await fetch(`${URL}/refresh`, {
+                method: 'POST',
+                credentials: 'include', // Передача cookie для refresh
+            });
+            const data = await response.json();
+            const { access, expiresIn } = data;
+
+            if (access) {
+                const expiresAt = Date.now() + expiresIn * 1000;
+                localStorage.setItem('authToken', access);
+                localStorage.setItem('expiresAt', expiresAt);
+                setIsAuthenticated(true);
+            }
+        } catch (error) {
+            console.error('Ошибка обновления токена:', error);
+        }
+    };
+
+    // Авторизация пользователя
     const sendDataToServerAuth = async () => {
-        if (login != '' && password != '') {
+        if (login !== '' && password !== '') {
             try {
-                const response = await fetch(URL, {
+                // формирование POST запроса на сервер с постфиксом auth
+                const response = await fetch(`${URL}/auth`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    // тело POST запроса
                     body: JSON.stringify({
                         login,
                         password,
                     }),
                 });
-                // Ждем ответа от сервера
-                const data = await response.json();
-
-                // Обработка ответа
-                const { access, refresh } = data;
-
-                // Сохранение access token в sessionStorage
-                sessionStorage.setItem('accessToken', access);
-
-                console.log('Access token сохранён:', access);
-                console.log('Refresh token получен и хранится в куках автоматически');
-
-                navigation.navigate("Home");
-
+    
+                // Проверка кода статуса ответа
+                if (response.ok) { // Статус 2xx, успешная авторизация
+                    const data = await response.json();
+                    const { access, refresh, expiresIn } = data;
+    
+                    if (access) {
+                        const expiresAt = Date.now() + expiresIn * 1000;
+                        localStorage.setItem('authToken', access);
+                        localStorage.setItem('expiresAt', expiresAt);
+                        console.log('Access token сохранён:', access);
+                        console.log('Refresh token получен и хранится в куках автоматически');
+    
+                        setIsAuthenticated(true);
+                        navigation.navigate('Home');
+                    }
+                } else {
+                    // Обработка различных кодов ошибок
+                    switch (response.status) {
+                        case 401:
+                            AlertBox("Неверно указан логин или пароль");
+                            setMessage('Неверный логин или пароль');
+                            break;
+                        case 500:
+                            setMessage('Ошибка сервера, попробуйте позже');
+                            break;
+                        default:
+                            setMessage('Произошла неизвестная ошибка, попробуйте позже');
+                            break;
+                    }
+                }
             } catch (error) {
                 console.error('Ошибка при авторизации:', error);
+                AlertBox("нет соединения с сервером");
+                setMessage('Не удалось подключиться к серверу. Попробуйте позже.');
             }
         } else {
-            console.error('Ошибка заполнения, логин или пароль не заполнены');
+            setMessage('Поля логина и пароля не могут быть пустыми');
         }
-
-        // Сбрасываем значение для большей безопасности
+    
+        // Очистка полей после попытки авторизации
         setLogin('');
         setPassword('');
     };
+    
 
+    // Логика выхода из аккаунта
+    const logout = () => {
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('expiresAt');
+        setIsAuthenticated(false);
+        navigation.navigate('Auth');
+    };
+
+    // Интерфейс страницы
     return (
         <SafeAreaView style={styles.container}>
             <View style={[styles.mainBlock, { width: mainBlockWidth }]}>
@@ -74,7 +137,6 @@ export const AuthScreen = ({ navigation }) => {
                 <Text style={styles.topText}>{message}</Text>
 
                 <View style={styles.blockTextInput}>
-                    {/* Поле ввода значения ЛОГИНА пользователя */}
                     <TextInput
                         style={styles.textInput}
                         placeholder="Логин или почта:"
@@ -85,7 +147,6 @@ export const AuthScreen = ({ navigation }) => {
                 </View>
 
                 <View style={styles.blockTextInput}>
-                    {/* Поле ввода значения ПАРОЛЯ пользователя*/}
                     <TextInput
                         secureTextEntry={!showPassword}
                         style={styles.textInput}
@@ -94,7 +155,6 @@ export const AuthScreen = ({ navigation }) => {
                         value={password}
                     />
 
-                    {/* Иконка - кнопка глаза, изменяющее состояние видимости пароля */}
                     <MaterialCommunityIcons
                         name={showPassword ? 'eye-off' : 'eye'}
                         size={28}
@@ -104,13 +164,11 @@ export const AuthScreen = ({ navigation }) => {
                     />
                 </View>
 
-                {/* Кнопка отправки данных на сервер для авторизации */}
                 <TouchableOpacity style={styles.button.active} onPressOut={sendDataToServerAuth}>
                     <Text style={styles.buttonText}>Войти</Text>
                 </TouchableOpacity>
 
-                {/* Кнопка отправки данных на сервер для регистрации*/}
-                <TouchableOpacity style={styles.button.inactive} onPressOut={() => {navigation.navigate("Reg");}}>
+                <TouchableOpacity style={styles.button.inactive} onPressOut={() => { navigation.navigate("Reg"); }}>
                     <Text style={styles.buttonText}>Регистрация</Text>
                 </TouchableOpacity>
             </View>
@@ -125,7 +183,6 @@ const styles = StyleSheet.create({
         alignContent: 'center',
         justifyContent: 'center',
         flex: 1,
-
         backgroundColor: '#21292c',
     },
 
@@ -160,20 +217,17 @@ const styles = StyleSheet.create({
     },
 
     button: {
-        active:{
+        active: {
             width: '100%',
             height: '10%',
             backgroundColor: '#007bb7',
-            
         },
 
         inactive: {
             width: '100%',
             height: '10%',
             backgroundColor: '#374e59',
-            
         }
-
     },
 
     buttonText: {
@@ -188,7 +242,7 @@ const styles = StyleSheet.create({
         fontSize: '1.25rem',
     },
 
-    topText:{
+    topText: {
         textAlign: "center",
         justifyContent: "center",
 

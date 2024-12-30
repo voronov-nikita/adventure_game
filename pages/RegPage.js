@@ -6,6 +6,8 @@ import React, { useState } from 'react';
 import { View, Text, SafeAreaView, StyleSheet, TextInput, TouchableOpacity, Dimensions } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
+import { AlertBox } from '../components/AlertBox';
+
 // импорт констант из файла с конфигурациями
 import { URL } from '../config';
 
@@ -16,6 +18,7 @@ export const RegScreen = ({ navigation }) => {
     const mainBlockWidth = width < 400 ? '85%' : '34%';
 
     // переменные состояний
+    const topMessage = "Регистрация";
     // login - переменная логина пользователя (по умолчанию отсутствует)
     const [login, setLogin] = useState('');
     // login - переменная почты пользователя (по умолчанию отсутствует)
@@ -82,7 +85,7 @@ export const RegScreen = ({ navigation }) => {
     return (
         <SafeAreaView style={styles.container}>
             <View style={[styles.mainBlock, { width: mainBlockWidth }]}>
-                <Text style={styles.topText}>Регистрация</Text>
+                <Text style={styles.topText}>{topMessage}</Text>
 
                 <View style={[styles.blockTextInput, {borderColor: borderTextColor}]}>
                     {/* Поле ввода значения ЛОГИНА пользователя */}

@@ -1,5 +1,5 @@
 // 
-// 
+// Основная страница
 // 
 // 
 
@@ -10,7 +10,7 @@ import { View, Text, SafeAreaView, StyleSheet } from "react-native";
 export const HomeScreen = () => {
     return (
         <SafeAreaView>
-            <Text>Ужас</Text>
+            <Text>Начальный пример домашней страницы</Text>
         </SafeAreaView>
     );
 }
